@@ -1,0 +1,80 @@
+﻿@model CustomerVM
+@inject IWebHostEnvironment env;
+@{
+    ViewBag.Title = "Customer Details";
+    bool isDevelopment = true;
+    if (env.EnvironmentName == "Development")
+    {
+        isDevelopment = true;
+    }
+    else
+    {
+        isDevelopment = false;
+    }
+}
+<div class="container">
+    <div class="row">
+        <input type="hidden" id="hdnIsDevelopement" value="@isDevelopment.ToString().ToLower()" />
+        <div class="col-6">
+            <h4>Customer Details</h4>
+        </div>
+        <div class="col-6 d-flex justify-content-end">
+            <button id="btnAdd" class="btn btn-sm btn-primary mb-3">Create New</button>
+        </div>
+
+        <hr />
+        <div id="divCustomerDetails" class="col-12">
+            @* Displaying List *@
+            <partial name="_CustomerDetails" model="Model.CustomerInfoList" />
+
+        </div>
+    </div>
+</div>
+@* Rendering Model *@
+<div id="divCustomerInfoForm">
+    @* <partial name="_CustomerInfoForm" model="Model.CustomerInfo" />  *@
+</div>
+
+
+
+@section Scripts {
+    @*  @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    } *@
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("#btnAdd").click(function () {
+                showCustomerInfoForm(0);
+            })
+
+
+        });
+        function showCustomerInfoForm(id) {
+
+            $.ajax({
+                type: "POST",
+                url: "/Customer/RenderCustomerInfoForm",
+                data: { "id": id },
+                success: function (response) {
+                    if (response != null) {
+                        $("#divCustomerInfoForm").html(response);
+
+                        $('#myModal').modal('show');
+                    }
+                },
+                error: function (response) {
+                    if ($("#hdnIsDevelopement").val() == "false") {
+                        alert("An error occurred while processing your request.Kindly try again");
+                    }
+                    else {
+                        alert(response.responseText);
+                    }
+                }
+            });
+        }
+
+
+    </script>
+
+
+}

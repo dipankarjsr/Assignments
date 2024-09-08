@@ -1,0 +1,161 @@
+﻿@model CustomerInfoVM
+@inject IGenderRepository genderRepository;
+@inject IStateRepository stateRepository;
+@{
+
+    var genderList = (await genderRepository.GetAllAsync()).Select(x => new SelectListItem
+            {
+                Text = x.Name,
+                Value = x.Id.ToString()
+            }).ToList();
+    genderList.Insert(0, new SelectListItem { Text = "Select Gender", Value = "" });
+    var stateList = (await stateRepository.GetAllAsync()).Select(x => new SelectListItem
+            {
+                Text = x.Name,
+                Value = x.Id.ToString()
+            }).ToList();
+    stateList.Insert(0, new SelectListItem { Text = "Select State", Value = "" });
+}
+<div class="modal fade " id="myModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="CustomerInfoForm">
+                <div class="modal-header">
+                    <input type="hidden" asp-for="Id" value="@Model.Id" />
+                    @if (Model.Id != 0)
+                    {
+                        <h5 class="modal-title">Update Customer</h5>
+                    }
+                    else
+                    {
+                        <h5 class="modal-title">Create Customer</h5>
+
+                    }
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-12">
+
+
+                            <div class="row">
+                                <div class="form-group col-12 mb-2">
+                                    <label asp-for="Name" class="control-label"></label>
+                                    <input id="txtName" asp-for="Name" class="form-control" />
+                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                </div>
+                                <div class="form-group col-12  mb-2">
+                                    <label asp-for="GenderId" class="control-label"></label>
+                                    <select asp-for="GenderId" class="form-control" asp-items="@genderList"></select>
+                                    <span asp-validation-for="GenderId" class="text-danger"></span>
+                                </div>
+                                <div class="form-group col-12  mb-2">
+                                    <label asp-for="StateId" class="control-label"></label>
+                                    <select id="dpState" asp-for="StateId" class="form-control" asp-items="@stateList"></select>
+                                    <span asp-validation-for="StateId" class="text-danger"></span>
+                                </div>
+                                <div class="form-group col-12  mb-2">
+                                    <label asp-for="DistrictId" class="control-label"></label>
+                                    @if (Model.Id == 0)
+                                    {
+                                        <select id="dpDistrict" asp-for="DistrictId" asp-items="@ViewBag.DistrictList ?? null" class="form-control " disabled></select>
+                                    }
+                                    else
+                                    {
+                                        <select id="dpDistrict" asp-for="DistrictId" asp-items="@ViewBag.DistrictList ?? null" class="form-control "></select>
+                                    }
+                                    <span asp-validation-for="DistrictId" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <input id="btnSaveOrUpdate" type="button" value="@(Model.Id==0 ? "Create" : "Update")" class="btn btn-primary" />
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@* @{
+    await Html.RenderPartialAsync("_ValidationScriptsPartial");
+} *@
+
+@* <script src="~/lib/jquery/dist/jquery.min.js"></script> *@
+
+
+<script type="text/javascript">
+    $('#txtName').on('input', function () {
+        var value = $(this).val();
+        $(this).val(value.replace(/[^a-zA-Z0-9 ]/g, ''));
+    });
+    $("#dpState").change(function () {
+
+        if ($(this).val() != "") {
+            $("#dpDistrict").removeAttr("disabled");
+        }
+        else {
+            $("#dpDistrict").attr("disabled", "disabled");
+
+        }
+        $.ajax({
+            type: "POST",
+            url: "/Customer/GetDistricts",
+            data: { "stateId": $(this).val() },
+            dataType: 'json',
+            success: function (response) {
+                var $dropdown = $('#dpDistrict');
+                $dropdown.empty();
+                $dropdown.append('<option value="">Select District</option>');
+                $.each(jQuery.parseJSON(response), function (index, district) {
+                    $dropdown.append($('<option>', {
+                        value: district.Id,
+                        text: district.Name
+                    }));
+                });
+            },
+            error: function (response) {
+                if ($("#hdnIsDevelopement").val() == "false") {
+                    alert("An error occurred while processing your request.Kindly try again");
+                }
+                else {
+                    alert(response.responseText);
+                }
+            }
+        });
+    })
+
+    $(document).ready(function () {
+        $.validator.unobtrusive.parse($("#CustomerInfoForm"));
+    })
+    $("#btnSaveOrUpdate").click(function () {
+        if ($("#CustomerInfoForm").valid()) {
+            $.ajax({
+                type: "POST",
+                url: "/Customer/AddOrUpdateCustomerInfo",
+                data: $("#CustomerInfoForm").serialize(),
+                success: function (response) {
+                    if (response.success == false) {
+                        alert(response.message);
+                    }
+                    else {
+                        $('#myModal').modal('hide');
+                        $("#divCustomerDetails").html(response);
+                    }
+                },
+                error: function (response) {
+                    if ($("#hdnIsDevelopement").val() == "false") {
+                        alert("An error occurred while processing your request.Kindly try again");
+                    }
+                    else {
+                        alert(response.responseText);
+                    }
+                }
+            });
+        }
+    })
+</script>
