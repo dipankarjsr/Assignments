@@ -1,5 +1,5 @@
-**This repository contains a simple CRUD (Create, Read, Update, Delete) application using Models and Ajax built with ASP.NET Core MVC and Entity Framework Core. The application demonstrates how to perform basic operations on a database, such as adding, viewing, editing, and deleting records.
-Features**<br/><br/>
+**This repository contains a simple CRUD (Create, Read, Update, Delete) application using Models and Ajax built with ASP.NET Core MVC and Entity Framework Core. The application demonstrates how to perform basic operations on a database, such as adding, viewing, editing, and deleting records.Identity framework is used for Authentication and authorization<br/><br/>
+Features**
 **Create**: Add new records to the database.<br/>
 **Read**: Retrieve and display data from the database in a tabular format.<br/>
 **Update**: Edit existing records in the database.<br/>
